@@ -1,11 +1,13 @@
 package com.dev.managerEquip.Equipament.service;
 
 import java.util.UUID;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.dev.managerEquip.Equipament.dtos.request.RequestCreateEquipament;
-import com.dev.managerEquip.Equipament.dtos.response.ResponseCreateEquipament;
+import com.dev.managerEquip.Equipament.dtos.request.EquipamentRequestCreate;
+import com.dev.managerEquip.Equipament.dtos.response.EquipamentResponse;
+import com.dev.managerEquip.Equipament.dtos.response.EquipamentListItemResponse;
 import com.dev.managerEquip.Equipament.exceptions.ResourceAlreadyExistsException;
 import com.dev.managerEquip.Equipament.exceptions.ResourceNotFoundException;
 import com.dev.managerEquip.Equipament.mapper.EquipamentMapper;
@@ -22,7 +24,7 @@ public class EquipamentService {
     private final EquipamentRepository equipamentRepository;
     private final EquipamentMapper mapper;
  
-    public ResponseCreateEquipament addNewEquipament(RequestCreateEquipament request){
+    public EquipamentResponse addNewEquipament(EquipamentRequestCreate request){
         validateRequest(request);
 
         log.info("Adicionando novo equipamento: {}", request.serialNumber());
@@ -43,12 +45,27 @@ public class EquipamentService {
             log.error("Equipamento com ID {} não encontrado.", id);
             return new ResourceNotFoundException("Equipamento não encontrado.");
         });
-        // entity.deactivate();
+        entity.deactivate();
         equipamentRepository.save(entity);
         log.info("Equipamento desativado com sucesso: {}", id);
     }
 
-    private void validateRequest(RequestCreateEquipament request) {
+    public EquipamentResponse getEquipamentById(UUID id){
+        log.info("Buscando equipamento com ID: {}", id);
+        Equipament equipament = equipamentRepository.findById(id).orElseThrow(() -> {
+            log.error("Equipamento com ID {} não encontrado.", id);
+            return new ResourceNotFoundException("Equipamento não encontrado.");
+        });
+        return mapper.toResponse(equipament);
+    }
+    
+    public List<EquipamentListItemResponse> getAllEquipaments(){
+        log.info("Buscando todos os equipamentos.");
+        List<Equipament> equipaments = equipamentRepository.findAll();
+        return mapper.toListResponse(equipaments);
+    }
+
+    private void validateRequest(EquipamentRequestCreate request) {
         if (request == null) {
             log.error("RequestCreateEquipament é nulo");
             throw new IllegalArgumentException("Request não pode ser nulo");
@@ -56,8 +73,7 @@ public class EquipamentService {
 
         if (request.name() == null || request.name().isBlank()
                 || request.model() == null || request.model().isBlank()
-                || request.serialNumber() == null || request.serialNumber().isBlank()
-                || request.status() == null || request.status().isBlank()) {
+                || request.serialNumber() == null || request.serialNumber().isBlank()) {
             log.error("RequestCreateEquipament com campos obrigatórios ausentes ou vazios: {}", request);
             throw new IllegalArgumentException("Campos obrigatórios ausentes ou vazios");
         }

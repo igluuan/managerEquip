@@ -2,6 +2,8 @@ package com.dev.managerEquip.Equipament.model;
 
 import java.util.UUID;
 
+import com.dev.managerEquip.Equipament.enums.EquipamentStatus;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,10 +25,9 @@ public class Equipament {
     private String name;
     private String model;
     private String serialNumber;
-    // @Enumerated(EnumType.STRING)
-    private String status;
+    private EquipamentStatus status = EquipamentStatus.ACTIVE;
 
-    // public void deactivate() {
-    //     this.status = "desativado";
-    // }
+    public void deactivate() {
+        this.status = EquipamentStatus.INACTIVE;
+    }
 }
